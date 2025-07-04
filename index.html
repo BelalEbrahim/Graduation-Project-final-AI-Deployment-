@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Prediction Dashboard</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap @5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .dashboard-header h1 {
+            font-weight: 600;
+            color: #1a73e8;
+            font-size: 2.5rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: #5f6368;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            margin: 0 0.3rem;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+
+        .form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 1.5rem rgba(0,0,0,0.05);
+            margin-top: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2d3436;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+        }
+
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .result-box h5 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        .error {
+            background-color: #ffebee;
+            border-left: 4px solid #ef5350;
+        }
+
+        .job-card {
+            border-left: 4px solid #1a73e8;
+            transition: transform 0.2s;
+        }
+
+        .job-card:hover {
+            transform: translateX(5px);
+        }
+
+        .company-badge {
+            background-color: #1a73e8;
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.3rem;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>ML Prediction Dashboard</h1>
+            <p class="text-muted">Powered by Flask + Bootstrap</p>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3" id="modelTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="salary-tab" data-bs-toggle="tab" data-bs-target="#salary" type="button" role="tab">Salary Prediction</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="startup-tab" data-bs-toggle="tab" data-bs-target="#startup" type="button" role="tab">Startup Success</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab">Job Recommendations</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+
+            <!-- Salary Prediction -->
+            <div class="tab-pane fade show active" id="salary" role="tabpanel">
+                <div class="form-section">
+                    <h4 class="mb-4">Salary Prediction</h4>
+                    <form id="salaryForm">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Education</label>
+                                <input type="text" class="form-control" name="education" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Experience (Years)</label>
+                                <input type="number" class="form-control" name="experience" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-control" name="location" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Job Title</label>
+                                <input type="text" class="form-control" name="job_title" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Age</label>
+                                <input type="number" class="form-control" name="age" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Gender</label>
+                                <input type="text" class="form-control" name="gender" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary px-4 py-2">Predict Salary</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="salaryResult"></div>
+                </div>
+            </div>
+
+            <!-- Startup Success -->
+            <div class="tab-pane fade" id="startup" role="tabpanel">
+                <div class="form-section">
+                    <h4 class="mb-4">Startup Success Analysis</h4>
+                    <form id="startupForm">
+                        <div class="row g-3">
+                            <!-- Age Features -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Age First Funding Year</label>
+                                <input type="number" class="form-control" name="age_first_funding_year" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Age Last Funding Year</label>
+                                <input type="number" class="form-control" name="age_last_funding_year" required>
+                            </div>
+                            
+                            <!-- Numerical Features -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Relationships</label>
+                                <input type="number" class="form-control" name="relationships" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Funding Rounds</label>
+                                <input type="number" class="form-control" name="funding_rounds" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Funding Total USD</label>
+                                <input type="number" class="form-control" name="funding_total_usd" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Milestones</label>
+                                <input type="number" class="form-control" name="milestones" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Avg Participants</label>
+                                <input type="number" class="form-control" name="avg_participants" required>
+                            </div>
+
+                            <!-- State Flags -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">State Code</label>
+                                <input type="number" class="form-control" name="state_code" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is CA</label>
+                                <input type="number" class="form-control" name="is_CA" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is NY</label>
+                                <input type="number" class="form-control" name="is_NY" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is MA</label>
+                                <input type="number" class="form-control" name="is_MA" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is TX</label>
+                                <input type="number" class="form-control" name="is_TX" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Other State</label>
+                                <input type="number" class="form-control" name="is_otherstate" required>
+                            </div>
+
+                            <!-- Category Flags -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Category Code</label>
+                                <input type="number" class="form-control" name="category_code" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Software</label>
+                                <input type="number" class="form-control" name="is_software" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Web</label>
+                                <input type="number" class="form-control" name="is_web" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Mobile</label>
+                                <input type="number" class="form-control" name="is_mobile" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Enterprise</label>
+                                <input type="number" class="form-control" name="is_enterprise" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Advertising</label>
+                                <input type="number" class="form-control" name="is_advertising" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Games/Video</label>
+                                <input type="number" class="form-control" name="is_gamesvideo" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is E-commerce</label>
+                                <input type="number" class="form-control" name="is_ecommerce" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Biotech</label>
+                                <input type="number" class="form-control" name="is_biotech" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Consulting</label>
+                                <input type="number" class="form-control" name="is_consulting" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Other Category</label>
+                                <input type="number" class="form-control" name="is_othercategory" required>
+                            </div>
+
+                            <!-- Funding Flags -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Has VC</label>
+                                <input type="number" class="form-control" name="has_VC" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Has Angel</label>
+                                <input type="number" class="form-control" name="has_angel" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Has Round A</label>
+                                <input type="number" class="form-control" name="has_roundA" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Has Round B</label>
+                                <input type="number" class="form-control" name="has_roundB" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Has Round C</label>
+                                <input type="number" class="form-control" name="has_roundC" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Has Round D</label>
+                                <input type="number" class="form-control" name="has_roundD" required>
+                            </div>
+
+                            <!-- Binary Features -->
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Is Top 500</label>
+                                <input type="number" class="form-control" name="is_top500" required>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label class="form-label">Labels</label>
+                                <input type="number" class="form-control" name="labels" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-success px-4 py-2">Analyze Startup</button>
+                            <small class="text-muted ms-3">Enter values (0 or 1) for flags</small>
+                        </div>
+                    </form>
+                    <div id="startupResult" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Job Recommendations -->
+            <div class="tab-pane fade" id="jobs" role="tabpanel">
+                <div class="form-section">
+                    <h4 class="mb-4">Job Recommendations</h4>
+                    <form id="jobsForm">
+                        <div class="mb-3">
+                            <label class="form-label">Job Search Query</label>
+                            <input type="text" class="form-control" name="query" placeholder="e.g., Machine learning engineer with Python" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Number of Results (1-10)</label>
+                            <input type="number" class="form-control" name="top_n" min="1" max="10" value="3">
+                        </div>
+                        <button type="submit" class="btn btn-info px-4 py-2">Get Recommendations</button>
+                    </form>
+                    <div id="jobsResult" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap @5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script -->
+    <script>
+        // Salary Prediction
+        document.getElementById('salaryForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {};
+            new FormData(this).forEach((value, key) => data[key] = parseFloat(value));
+            
+            fetch('/predict_salary', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                const resultDiv = document.getElementById('salaryResult');
+                resultDiv.innerHTML = "";
+                
+                if (result.error) {
+                    resultDiv.innerHTML = `
+                        <div class="result-box error">
+                            <h5>Error</h5>
+                            <p class="mb-0">${result.error}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result-box success">
+                            <h5>Predicted Salary</h5>
+                            <h3 class="text-primary">$${parseFloat(result.predicted_salary).toLocaleString()}</h3>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 92%">
+                                    AI-Powered Estimation
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        });
+
+        // Startup Prediction
+        document.getElementById('startupForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {};
+            new FormData(this).forEach((value, key) => data[key] = parseFloat(value));
+            
+            fetch('/predict_startup', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                const resultDiv = document.getElementById('startupResult');
+                resultDiv.innerHTML = "";
+                
+                if (result.error) {
+                    resultDiv.innerHTML = `
+                        <div class="result-box error">
+                            <h5>Error</h5>
+                            <p class="mb-0">${result.error}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result-box success">
+                            <h5>Startup Analysis</h5>
+                            <h4 class="text-uppercase">${result.prediction}</h4>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: ${result.confidence * 100}%">
+                                    ${Math.round(result.confidence * 100)}% Confidence
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        });
+
+        // Job Recommendations
+        document.getElementById('jobsForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+            data.top_n = parseInt(data.top_n);
+            
+            fetch('/recommend_jobs', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                const resultDiv = document.getElementById('jobsResult');
+                resultDiv.innerHTML = "";
+                
+                if (result.error) {
+                    resultDiv.innerHTML = `
+                        <div class="result-box error">
+                            <h5>Error</h5>
+                            <p class="mb-0">${result.error}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const recommendations = result.recommendations || [];
+                if (recommendations.length === 0) {
+                    resultDiv.innerHTML = `
+                        <div class="result-box error">
+                            <h5>No Results</h5>
+                            <p class="mb-0">Try a different search query</p>
+                        </div>
+                        `;
+                    return;
+                }
+
+                let jobsHTML = `<h5 class="mb-3">Top ${recommendations.length} Job Recommendations</h5>`;
+                jobsHTML += recommendations.map(job => `
+                    <div class="card job-card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0">${job.title}</h5>
+                                <span class="company-badge">${job.company_name}</span>
+                            </div>
+                            <p class="card-text text-muted small mb-0">${job.description.substring(0, 150)}...</p>
+                        </div>
+                    </div>
+                `).join('');
+                
+                resultDiv.innerHTML = `
+                    <div class="result-box success">
+                        ${jobsHTML}
+                    </div>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
